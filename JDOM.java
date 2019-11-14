@@ -75,7 +75,15 @@ public class JDOM {
 		return soc;
 	}
 	public static Object References(){
-		ReferencesClass rc = new ReferencesClass();
+		System.out.println("Please enter a string");
+		Scanner in = new Scanner(System.in);
+		String title = in.nextLine();
+		System.out.println("Please enter a number");
+		int num = Integer.parseInt(in.nextLine());
+		System.out.println("Please enter another number");
+		int numTwo = Integer.parseInt(in.nextLine());
+		in.close();
+		ReferencesClass rc = new ReferencesClass(title, num, numTwo);
 		return rc;
 	}
 	public static Object SimpleArray(){
