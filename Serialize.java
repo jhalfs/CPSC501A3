@@ -13,15 +13,16 @@ public class Serialize {
 	Object obj;
 	Element root;
 	Element clz;
+	
 	public void serialize(Object obj, Element root) {
-
 		this.root = root;
 		this.obj = obj;
 		clazz =  obj.getClass();		
 		serializeClass();
-
+		
 	}
 
+	
 	private void serializeClass() {
 
 		clz = new Element(clazz.getSimpleName());
@@ -36,25 +37,50 @@ public class Serialize {
 
 			serializeFields();
 		}
-		root.addContent(clz);
+		//We're adding the same thing to the root twice, so it gives us the error
+		//root.addContent(clz);
 
 	}
+	
+	
 
 	private void serializeFields() {
 		Field[] fields = clazz.getDeclaredFields();
 		for(Field f : fields) {
 			f.setAccessible(true);
 			Element el = new Element(f.getName());
-			el.setAttribute("Modifier", String.valueOf(f.getModifiers()));
-			el.setAttribute("Type", f.getType().getName());
-			try {
-				el.setText(String.valueOf(f.get(obj)));
 
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				e.printStackTrace();
+			
+			if(String.valueOf(f.getType().getName()).equals("SimpleObjectClass")){
+				el.setAttribute("Type", "reference");
+				try {
+					el.setText(String.valueOf(f.hashCode()));
+
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				}
+				//clz.addContent(el);
+				root.addContent(clz);
+				try {
+					serialize(f.get(obj), root);
+				} catch (IllegalAccessException| IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}else{
+				el.setAttribute("Modifier", String.valueOf(f.getModifiers()));
+				el.setAttribute("Type", f.getType().getName());
+				try {
+					el.setText(String.valueOf(f.get(obj)));
+
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				//root.addContent(clz);
+				root.addContent(el);
+				
 			}
 
-			clz.addContent(el);
 		}
 	}
 

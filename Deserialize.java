@@ -1,3 +1,11 @@
+/*
+ * Might have solved the issue on the Serialize side, though things are out of order. 
+ * Need to change this side of things to interpret the Object references
+ * Have some ideas on how to handle the arrays too, based on the assignment documentation
+ * If I can get at least basic arrays working that would be good for marks
+ */
+
+
 import static java.lang.System.out;
 
 import org.jdom2.*;
@@ -40,6 +48,7 @@ public class Deserialize {
 
 			for(Field f: clz.getDeclaredFields()){
 				Element fd = clazz.getChild(f.getName());
+				System.out.println("Field Name" + f.getName());
 				String nm = fd.getValue();
 				if(java.lang.reflect.Modifier.isStatic(f.getModifiers())){
 					continue;
