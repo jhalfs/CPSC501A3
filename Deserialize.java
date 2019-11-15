@@ -45,14 +45,7 @@ public class Deserialize {
 				if(f.getName().equals("value")){
 					try {
 						Array.setInt(mv, 0, f.getInt(obj));
-					} catch (ArrayIndexOutOfBoundsException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalArgumentException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						// TODO Auto-generated catch block
+					} catch (IllegalAccessException | IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
 						e.printStackTrace();
 					}
 					arrayLoc++;
