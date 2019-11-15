@@ -27,7 +27,7 @@ public class JDOM {
 			e1.printStackTrace();
 		}
 		
-		Element root = new Element("Object");
+		Element root = new Element("serialized");
 		System.out.println(args[0]);
 		if(args[0].equals("1")){
 			serializer.serialize(SimpleObject(), root);
@@ -99,11 +99,33 @@ public class JDOM {
 		return sac;
 	}
 	public static Object ReferencesArray(){
-		ReferencesArrayClass rac = new ReferencesArrayClass();
+		System.out.println("Please enter a string");
+		Scanner in = new Scanner(System.in);
+		String title = in.nextLine();
+		System.out.println("Please enter a number");
+		int num = Integer.parseInt(in.nextLine());
+		System.out.println("Please enter another number");
+		int numTwo = Integer.parseInt(in.nextLine());
+		in.close();
+		SimpleObjectClass soc1 = new SimpleObjectClass(title, num, numTwo);
+		SimpleObjectClass soc2 = new SimpleObjectClass(title, num, numTwo);
+		SimpleObjectClass soc3 = new SimpleObjectClass(title, num, numTwo);
+		ReferencesArrayClass rac = new ReferencesArrayClass(soc1, soc2, soc3);
 		return rac;
 	}
 	public static Object ReferencesCollection(){
-		ReferencesCollectionClass rcc = new ReferencesCollectionClass();
+		System.out.println("Please enter a string");
+		Scanner in = new Scanner(System.in);
+		String title = in.nextLine();
+		System.out.println("Please enter a number");
+		int num = Integer.parseInt(in.nextLine());
+		System.out.println("Please enter another number");
+		int numTwo = Integer.parseInt(in.nextLine());
+		in.close();
+		SimpleObjectClass soc1 = new SimpleObjectClass(title, num, numTwo);
+		SimpleObjectClass soc2 = new SimpleObjectClass(title, num, numTwo);
+		SimpleObjectClass soc3 = new SimpleObjectClass(title, num, numTwo);
+		ReferencesCollectionClass rcc = new ReferencesCollectionClass(soc1, soc2, soc3);
 		return rcc;
 	}
 
