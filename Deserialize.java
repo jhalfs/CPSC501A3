@@ -1,5 +1,5 @@
 /*
- * Might have solved the issue on the Serialize side, though things are out of order. 
+ * Might have solved the issue on the Serialize side, though things are out of order. Need to change the order of things 
  * Need to change this side of things to interpret the Object references
  * Have some ideas on how to handle the arrays too, based on the assignment documentation
  * If I can get at least basic arrays working that would be good for marks
@@ -22,6 +22,7 @@ public class Deserialize {
 	Element clazz;
 	Method meth;
 	HashMap<Integer,Object> hashMap = new HashMap<Integer,Object>();
+	int arrayLoc = 0;
 
 	public Deserialize(Document doc) {
 
@@ -37,38 +38,67 @@ public class Deserialize {
 		}
 		listChildren(root,0);
 		Object mv=null;
-		try {
-			//This needs to be changed. It only works with the Movie class right now
-			Constructor constructor = clz.getDeclaredConstructor();
-			constructor.setAccessible(true);
-			mv = constructor.newInstance();
-			int id = mv.hashCode();
-			hashMap.put(id, mv);
-
-
+		if(name.contains("Array")){
+			Class clasz = elements.get(0).getClass().getComponentType();
 			for(Field f: clz.getDeclaredFields()){
 				Element fd = clazz.getChild(f.getName());
-				System.out.println("Field Name" + f.getName());
-				String nm = fd.getValue();
-				if(java.lang.reflect.Modifier.isStatic(f.getModifiers())){
-					continue;
-				}
-				if (f.getType().equals(int.class))
-				{
-					f.set(mv, Integer.valueOf(nm));
+				if(f.getName().equals("value")){
+					try {
+						Array.setInt(mv, 0, f.getInt(obj));
+					} catch (ArrayIndexOutOfBoundsException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalArgumentException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					arrayLoc++;
+				}else if(f.getName().contains("Array")){
+					mv = Array.newInstance(int.class, Integer.parseInt(fd.getAttributeValue("length")));
 				}
 			}
-			
+		}else{
+			try {
+				Constructor constructor = clz.getDeclaredConstructor();
+				constructor.setAccessible(true);
+				mv = constructor.newInstance();
+				int id = mv.hashCode();
+				hashMap.put(id, mv);
+
+
+				for(Field f: clz.getDeclaredFields()){
+					Element fd = clazz.getChild(f.getName());
+					String nm = fd.getValue();
+					if(java.lang.reflect.Modifier.isStatic(f.getModifiers())){
+						continue;
+					}
+					if (f.getType().equals(int.class))
+					{
+						f.set(mv, Integer.valueOf(nm));
+					}else{
+						f.set(mv, nm);
+					}
+					
+				}
+				
+			}catch (SecurityException | IllegalArgumentException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
+			e.printStackTrace();
+			}
+		}
 		
-	}catch (SecurityException | IllegalArgumentException | IllegalAccessException | InstantiationException | InvocationTargetException | NoSuchMethodException e) {
-		e.printStackTrace();
 	}
-}
 
 public static void listChildren(Element current, int depth) {
 
 	printSpaces(depth);
-	System.out.println(current.getName());
+	if(current.getName().contains("serialized") | current.getName().contains("Class") ){
+		System.out.println(current.getName());
+	}else{
+		System.out.println(current.getName() + " " + current.getValue());
+	}
 	List children = current.getChildren();
 	Iterator iterator = children.iterator();
 	while (iterator.hasNext()) {

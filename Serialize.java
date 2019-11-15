@@ -13,37 +13,66 @@ public class Serialize {
 	Object obj;
 	Element root;
 	Element clz;
+	Element clz1;
+	int recursion = 0;
+	int length;
 	
 	public void serialize(Object obj, Element root) {
 		this.root = root;
 		this.obj = obj;
-		clazz =  obj.getClass();		
+		clazz =  obj.getClass();
 		serializeClass();
 		
 	}
 
-	
+	//Make a new element for the recursive stuff
+	//That way the base clz will stay the same and we shouldn't run into the duplicate content issue
 	private void serializeClass() {
+		if(recursion == 1){
+			clz1 = new Element(clazz.getSimpleName());
 
-		clz = new Element(clazz.getSimpleName());
+			int id = obj.hashCode();
+			clz1.setAttribute("Index", String.valueOf(id));
 
-		int id = obj.hashCode();
-		clz.setAttribute("Index", String.valueOf(id));
+			clz1.setAttribute("Name", clazz.getName());
+			if(clazz.getName().contains("Reference")){
+				recursion = 1;
+			}
 
-		clz.setAttribute("Name", clazz.getName());
+			if(clazz.getDeclaredFields().length>0){
+				serializeFields();
+			}
+			//We're adding the same thing to the root twice, so it gives us the error
+			//clz.detach();
+			System.out.println(clz1.getName());
+			//root.addContent(clz1);
+			//clz.removeContent();
+		}else{
+			clz = new Element(clazz.getSimpleName());
 
+			int id = obj.hashCode();
+			clz.setAttribute("Index", String.valueOf(id));
 
-		if(clazz.getDeclaredFields().length>0){
+			clz.setAttribute("Name", clazz.getName());
+			if(clazz.getName().contains("Reference")){
+				recursion = 1;
+			}
 
-			serializeFields();
+			if(clazz.getDeclaredFields().length>0){
+				serializeFields();
+			}
+			//We're adding the same thing to the root twice, so it gives us the error
+			//clz.detach();
+			System.out.println(clz.getName());
+			root.addContent(clz);
+			//clz.removeContent();
 		}
-		//We're adding the same thing to the root twice, so it gives us the error
-		//root.addContent(clz);
+		
 
 	}
 	
 	
-
+	//Adding the same thing twice??
 	private void serializeFields() {
 		Field[] fields = clazz.getDeclaredFields();
 		for(Field f : fields) {
@@ -51,7 +80,7 @@ public class Serialize {
 			Element el = new Element(f.getName());
 
 			
-			if(String.valueOf(f.getType().getName()).equals("SimpleObjectClass")){
+			if(String.valueOf(f.getType().getName()).equals("SimpleObjectClass") && recursion == 1){
 				el.setAttribute("Type", "reference");
 				try {
 					el.setText(String.valueOf(f.hashCode()));
@@ -59,15 +88,34 @@ public class Serialize {
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
 				}
-				//clz.addContent(el);
-				root.addContent(clz);
+				clz.addContent(el);
 				try {
 					serialize(f.get(obj), root);
+					clz.setAttribute("Name", clazz.getName());
 				} catch (IllegalAccessException| IllegalArgumentException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			}else{
+			}else if(f.getType().getName().equals("[I")){
+				el.setAttribute("Class", f.getType().getName());
+				try {
+					el.setText(String.valueOf(f.get(obj)));
+					length = Array.getLength(f.get(obj));
+					el.setAttribute("length", String.valueOf(length));
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					e.printStackTrace();
+				}
+				  clz.addContent(el);
+				for(int i=0; i<length; i++){
+					Element arrayVal = new Element("value");
+					try {
+						arrayVal.setText(String.valueOf(Array.get(f.get(obj), i)));
+					} catch (ArrayIndexOutOfBoundsException | IllegalArgumentException | IllegalAccessException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					clz.addContent(arrayVal);
+				}
+			}else {
 				el.setAttribute("Modifier", String.valueOf(f.getModifiers()));
 				el.setAttribute("Type", f.getType().getName());
 				try {
@@ -77,7 +125,7 @@ public class Serialize {
 					e.printStackTrace();
 				}
 				//root.addContent(clz);
-				root.addContent(el);
+				clz.addContent(el);
 				
 			}
 
